@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -9,32 +10,51 @@ import (
 	"golang.org/x/net/publicsuffix"
 	"log"
 	"github.com/PuerkitoBio/goquery"
-	//"os"
-	//"encoding/json"
 	"strings"
-
 	"strconv"
-	// "regexp"
 	"os"
 	"io"
 	"bufio"
+	"github.com/BurntSushi/toml"
+	"regexp"
 )
 
 type Configuration struct {
-	pagestart   string
-	pageend     string
-	loginemail  string
-	loginpasswd string
-	user        string
+	Pagestart      string
+	Pageend        string
+	Loginemail     string
+	Loginpasswd    string
+	User           string
+	BackupFilename string
+}
+
+func ReadConfig() Configuration {
+
+	//_, err := os.Open(configfile)
+	//if err != nil {
+	//	log.Fatal("Config file is missing: ", configfile)
+	//}
+	var configfile = "config.toml"
+
+	config := Configuration{}
+
+	if _, err := toml.DecodeFile(configfile, &config); err != nil {
+		log.Fatal(err)
+	}
+
+	return config
 }
 
 //func readConfig() (string, string, string, string, string) {
-//	file, _ := os.Open("config.json")
+//	file, _ := os.Open("config.toml")
 //	decoder := json.NewDecoder(file)
-//	config := Configuration{}
-//	_ := decoder.Decode(&config)
-//	return config.pagestart, config.pageend, config.loginemail, config.loginpasswd, config.loginpasswd
+//	config.toml := Configuration{}
+//	_ := decoder.Decode(&config.toml)
+//	return config.toml.pagestart, config.toml.pageend, config.toml.loginemail, config.toml.loginpasswd, config.toml.loginpasswd
 //}
+
+// TODO 关于验证码这里也从简。其它尽快完成需要的部分发不过去就好了
+// TODO 多 go 来加快执行速度
 
 type Jar struct {
 	cookies []*http.Cookie
@@ -51,26 +71,26 @@ func parse() {
 
 	//配置文件
 	//fmt.Println(os.Getwd())
-	//file, err := os.Open("config.json")
+	//file, err := os.Open("config.toml")
 	//if err!=nil {
 	//	fmt.Println("error:",err)
 	//}
 	//decoder := json.NewDecoder(file)
-	//var config  Configuration
-	//err = decoder.Decode(&config)
+	//var config.toml  Configuration
+	//err = decoder.Decode(&config.toml)
 	//if err!=nil {
 	//	fmt.Println("error:",err)
 	//}
 	//
-	//fmt.Println(config.user)
-	fmt.Println("----")
+	//fmt.Println(config.toml.user)
 
-	config := Configuration{}
-	config.user = "http://fanfou.com/Allianzcortex"
-	config.loginpasswd = "password"
-	config.loginemail = "iamwanghz@gmail.com"
-	config.pagestart = "1"
-	config.pageend = "2"
+	var configfile = "config.toml"
+
+	var config Configuration
+
+	if _, err := toml.DecodeFile(configfile, &config); err != nil {
+		log.Fatal(err)
+	}
 
 	options := cookiejar.Options{
 		PublicSuffixList: publicsuffix.List,
@@ -83,24 +103,24 @@ func parse() {
 
 	client := http.Client{Jar: jar}
 	// 判断验证码
-	//resp, err := client.Get("http://fanfou.com/login")
-	//res, _ := ioutil.ReadAll(resp.Body)
-	//r := regexp.MustCompile(`<img src="\/\/(.*?)" width`)
-	//// <img src="\/\/(.*?)" width
-	//body := string(res)
-	//captchAddress := r.FindStringSubmatch(body)[0]
-	if (1 > 0) {
-		_, err := client.PostForm("http://fanfou.com/login", url.Values{
-			"loginname": {"%s", config.loginemail},
-			"loginpass": {"%s", config.loginpasswd},
+	resp, err := client.Get("http://fanfou.com/login")
+	res, _ := ioutil.ReadAll(resp.Body)
+	r := regexp.MustCompile(`<img src="\/\/(.*?)" width`)
+	// <img src="\/\/(.*?)" width
+	body := string(res)
+	captchAddress := r.FindStringSubmatch(body)[1]
+	if (1>0) {
+		_, err := client.PostForm("https://fanfou.com/login", url.Values{
+			"loginname": {"" + config.Loginemail},
+			"loginpass": {"" + config.Loginpasswd},
 			"action":    {"login"},
-			"token":     {"68b423d5"}})
+			"token":     {"42070970"}})
 		if err != nil {
 			log.Fatal(err)
 		}
 	} else {
 		// 下载图片并打开
-		response, err := http.Get("http://")
+		response, err := http.Get("http://" + captchAddress)
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -114,14 +134,14 @@ func parse() {
 		}
 		picture.Close()
 
-		// TODO 很多文件流打开后就没有关闭
+		// TODO 读取用户输入验证码
 		reader := bufio.NewReader(os.Stdin)
 		captcha, _ := reader.ReadString('\n')
 		fmt.Println(captcha)
 		_, err = client.PostForm("http://fanfou.com/login", url.Values{
 			"loginname": {"iamwanghz@gmail.com"},
 			"loginpass": {"password"},
-			"captcha":   {"\"" + captcha + "\""},
+			"captcha":   {captcha},
 			"action":    {"login"},
 			"token":     {"127396ab"}})
 		if err != nil {
@@ -129,14 +149,24 @@ func parse() {
 		}
 	}
 
-	//start, _ := strconv.Atoi(config.pagestart)
-	//end, _ := strconv.Atoi(config.pageend)
-	start := 1
-	end := 4
-	count:=0
-	for i := start; i <= end; i++ {
+	//start, _ := strconv.Atoi(config.toml.pagestart)
+	//end, _ := strconv.Atoi(config.toml.pageend)
+	start, _ := strconv.Atoi(config.Pagestart)
+	end, _ := strconv.Atoi(config.Pageend)
 
-		resp, err := client.Get(config.user + "/p." + strconv.Itoa(i))
+	count := 0
+
+	// 创建文件
+	f, err := os.Create(config.BackupFilename)
+	w := bufio.NewWriter(f)
+
+	var tweets []string
+	var timestamps []string
+
+	for i := start; i <= end; i++ {
+		tweets = tweets[:0]
+		timestamps = timestamps[:0]
+		resp, err := client.Get(config.User + "/p." + strconv.Itoa(i))
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -146,8 +176,7 @@ func parse() {
 		}
 		defer resp.Body.Close()
 		target := string(data)
-
-		// fmt.Println(target)
+		fmt.Println(target)
 
 		// 进行处理
 		doc, err := goquery.NewDocumentFromReader(strings.NewReader(target))
@@ -157,52 +186,31 @@ func parse() {
 
 		doc.Find("div#content .content").Each(func(i int, s *goquery.Selection) {
 			// For each item found, get the band and title
-			tweet := s.Text()
-			fmt.Println(tweet)
-			fmt.Println("---")
+			tweet := strconv.Itoa(count) + ". " + s.Text()
+			tweets = append(tweets, tweet)
+
 			count += 1
 		})
+
+		doc.Find("div#content .stamp").Each(func(i int, s *goquery.Selection) {
+			// For each item found, get the band and title
+			timestamp := s.Text()
+			timestamps = append(timestamps, timestamp)
+
+		})
+
+		for index, _ := range tweets {
+
+			w.WriteString(tweets[index] + " " + timestamps[index] + "\n---\n")
+		}
+		w.Flush()
+		fmt.Printf("正在处理 %d 页面信息\n", i)
 	}
-	fmt.Printf("总共读取 %d 条信息",count)
+	fmt.Printf("总共读取 %d 条信息", count)
 }
 
 func main() {
-	//  response, err := http.PostForm("http://127.0.0.1:8080/admin/user/login", map[string][]string{"username": []string{"admin"}, "pass": []string{"admin"}})
 
-	//jar := new(Jar)
-	//
-	//client := &http.Client{nil, nil, jar, 99999999999992}
-	//
-	////req, _ := http.NewRequest("POST", "http://127.0.0.1:8080/admin/user/login", nil)
-	//
-	//resp, err := client.PostForm("http://fanfou.com/login", url.Values{"loginname": {"iamwanghz@gmail.com"}, "loginpass": {"402840evened"}, "action":{"login"}, "token":{"68b423d5"}})
-	//
-	//cookie    :=    http.Cookie{
-	//	"__utmz=208515845.1515266115.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); __utmc=208515845; __utma=208515845.1741402146.1515266115.1517038704.1517054440.50; __utmt=1; __utmv=208515845.visitor; u=Allianzcortex; uuid=f1675fd41a51ab2e29ba.1515266127.7; PHPSESSID=dfufps6rut8aqkl4vvl4s4q913; m=iamwanghz%40gmail.com; __utmb=208515845.48.10.1517054440"
-	//}
-	//if err != nil {
-	//    panic(err.Error())
-	//}
-	//
-	//body, err := ioutil.ReadAll(resp.Body)
-	//
-	//resp, err = client.Get("http://fanfou.com/Allianzcortex")
-	//
-	//if err != nil {
-	//    panic(err.Error())
-	//}
-	//
-	//body, err = ioutil.ReadAll(resp.Body)
-	//
-	//fmt.Println(string(body))
-	//
-	//cookies := resp.Cookies()
-	//
-	//fmt.Println("xxxx")
-	//for _, cookie := range cookies {
-	//    fmt.Println("cookie:", cookie.Name)
-	//}
 	parse()
 
-	// 所以 golag
 }
