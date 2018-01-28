@@ -36,7 +36,7 @@ func parse(){
     client := http.Client{Jar: jar}
     resp, err := client.PostForm("http://fanfou.com/login", url.Values{
         "loginname": {"iamwanghz@gmail.com"},
-        "loginpass" : {"402840evened"},
+        "loginpass" : {"password"},
         "action":{"login"},
         "token":{"68b423d5"}})
     if err != nil {
