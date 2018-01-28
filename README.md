@@ -31,3 +31,15 @@ Linux 下编译 Mac 和 Windows 64位可执行程序
 
 CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build main.go
 CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build main.go
+
+# 验证码解决
+
+半成品。根据链接下载验证码，之后手动识别。
+
+```
+r := regexp.MustCompile(`<img src="\/\/(.*?)" width`)
+body := string(res)
+captchAddress := r.FindStringSubmatch(body)[1]
+```
+
+
