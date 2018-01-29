@@ -4,7 +4,7 @@
 申请 OAUTH2 提供网页备份服务，待审核中
 Fanfou backup tools via golang
 
-示例可以看 [gzallen 的备份](//Allenzhang_fanfou_backup)
+示例可以看 [gzallen 的备份](Allenzhang_fanfou_backup)
 
 # <del>deprecated</del> delayed
 饭否无法模拟登陆，问题暂时不想解决......以后有时间再做......
