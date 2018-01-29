@@ -1,0 +1,18 @@
+
+# 登陆的邮箱或者手机号
+Loginemail = ""
+
+# 登陆的密码
+Loginpasswd = ""
+
+# 要备份结束的页面编号。如某人共有 118 页信息，则填写 118
+Pageend = "3"
+
+# 要备份开始的页面编号，默认从第 1 页开始
+Pagestart = "1"
+
+# 要备份的人的页面地址
+User = "http://fanfou.com/wangxing"
+
+# 备份后的文件名称
+BackupFilename = "WangXing_fanfou_backup.txt"
