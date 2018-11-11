@@ -30,10 +30,6 @@ type Configuration struct {
 
 func ReadConfig() Configuration {
 
-	//_, err := os.Open(configfile)
-	//if err != nil {
-	//	log.Fatal("Config file is missing: ", configfile)
-	//}
 	var configfile = "config.toml"
 
 	config := Configuration{}
@@ -45,16 +41,6 @@ func ReadConfig() Configuration {
 	return config
 }
 
-//func readConfig() (string, string, string, string, string) {
-//	file, _ := os.Open("config.toml")
-//	decoder := json.NewDecoder(file)
-//	config.toml := Configuration{}
-//	_ := decoder.Decode(&config.toml)
-//	return config.toml.pagestart, config.toml.pageend, config.toml.loginemail, config.toml.loginpasswd, config.toml.loginpasswd
-//}
-
-// TODO 关于验证码这里也从简。其它尽快完成需要的部分发不过去就好了
-// TODO 多 go 来加快执行速度
 
 type Jar struct {
 	cookies []*http.Cookie
@@ -68,21 +54,6 @@ func (jar *Jar) Cookies(u *url.URL) []*http.Cookie {
 }
 
 func parse() {
-
-	//配置文件
-	//fmt.Println(os.Getwd())
-	//file, err := os.Open("config.toml")
-	//if err!=nil {
-	//	fmt.Println("error:",err)
-	//}
-	//decoder := json.NewDecoder(file)
-	//var config.toml  Configuration
-	//err = decoder.Decode(&config.toml)
-	//if err!=nil {
-	//	fmt.Println("error:",err)
-	//}
-	//
-	//fmt.Println(config.toml.user)
 
 	var configfile = "config.toml"
 
@@ -149,8 +120,7 @@ func parse() {
 		}
 	}
 
-	//start, _ := strconv.Atoi(config.toml.pagestart)
-	//end, _ := strconv.Atoi(config.toml.pageend)
+	
 	start, _ := strconv.Atoi(config.Pagestart)
 	end, _ := strconv.Atoi(config.Pageend)
 
